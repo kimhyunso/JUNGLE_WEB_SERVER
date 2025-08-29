@@ -33,6 +33,7 @@
 *.so
 *.so.*
 *.dylib
+*.tar
 
 # Executables
 *.exe
