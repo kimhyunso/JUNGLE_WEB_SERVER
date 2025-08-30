@@ -17,30 +17,66 @@ void serve_dynamic(int fd, char *filename, char *cgiargs);
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg,
                  char *longmsg);
 
-int main(int argc, char **argv)
-{
-  int listenfd, connfd;
-  char hostname[MAXLINE], port[MAXLINE];
-  socklen_t clientlen;
-  struct sockaddr_storage clientaddr;
 
-  /* Check command line args */
-  if (argc != 2)
-  {
-    fprintf(stderr, "usage: %s <port>\n", argv[0]);
-    exit(1);
-  }
+/*
+ * # tiny는 반복실행 서버, 명령줄에서 넘겨받은 포트로의 연결 요청을 듣는다.
+ * 1. open_listenfd 함수를 호출해서 듣기 소켓을 오픈한 후
+ * 2. tiny는 무한 서버 루프를 실행
+ * 3. 반복적으로 연결 요청을 접수
+ * 4. 트랜잭션을 수행
+ * 5. 자신 쪽의 연결 끝을 닫는다.
+ */
+int main(int argc, char** argv) {
+    int listenfd, connfd;
+    char hostname[MAXLINE], port[MAXLINE];
+    socklen_t clientlen;
+    struct sockaddr_storage clientaddr;
 
-  listenfd = Open_listenfd(argv[1]);
-  while (1)
-  {
-    clientlen = sizeof(clientaddr);
-    connfd = Accept(listenfd, (SA *)&clientaddr,
-                    &clientlen); // line:netp:tiny:accept
-    Getnameinfo((SA *)&clientaddr, clientlen, hostname, MAXLINE, port, MAXLINE,
-                0);
-    printf("Accepted connection from (%s, %s)\n", hostname, port);
-    doit(connfd);  // line:netp:tiny:doit
-    Close(connfd); // line:netp:tiny:close
-  }
+    if (argc != 2) {
+        fprintf(stderr, "usage: %s <port>\n", argv[0]);
+        exit(1);
+    }
+
+    listenfd = Open_listenfd(argv[1]);
+    while (1) {
+        clientlen = sizeof(clientaddr);
+        connfd = Accept(listenfd, (SA*)&clientaddr, &clientlen);
+        Getnameinfo((SA*)&clientaddr, clientlen, hostname, MAXLINE, port, MAXLINE, 0);
+        printf("Accepted connection from (%s, %s)\n", hostname, port);
+        doit(connfd);
+        Close(connfd);
+    }
 }
+
+void doit(int fd) {
+    
+}
+
+
+// int main(int argc, char **argv)
+// {
+//   int listenfd, connfd;
+//   char hostname[MAXLINE], port[MAXLINE];
+//   socklen_t clientlen;
+//   struct sockaddr_storage clientaddr;
+
+//   /* Check command line args */
+//   if (argc != 2)
+//   {
+//     fprintf(stderr, "usage: %s <port>\n", argv[0]);
+//     exit(1);
+//   }
+
+//   listenfd = Open_listenfd(argv[1]);
+//   while (1)
+//   {
+//     clientlen = sizeof(clientaddr);
+//     connfd = Accept(listenfd, (SA *)&clientaddr,
+//                     &clientlen); // line:netp:tiny:accept
+//     Getnameinfo((SA *)&clientaddr, clientlen, hostname, MAXLINE, port, MAXLINE,
+//                 0);
+//     printf("Accepted connection from (%s, %s)\n", hostname, port);
+//     doit(connfd);  // line:netp:tiny:doit
+//     Close(connfd); // line:netp:tiny:close
+//   }
+// }
