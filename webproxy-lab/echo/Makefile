@@ -17,4 +17,4 @@ server: server.c csapp.o
 	$(CC) $(CFLAGS) -o server csapp.o server.c $(LDFLAGS)
 
 clean:
-	rm -rf $(TARGETS)
+	rm -rf $(TARGETS) csapp.o

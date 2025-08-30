@@ -16,7 +16,7 @@ int main(int arg, char* args[]) {
     port = args[2];
     // connect
     clientfd = Open_clientfd(host, port);
-    Rio_readinitb(&rio, clientfd); 
+    Rio_readinitb(&rio, clientfd);  // 식별자 fd를 주소 
 
     // write
     // read
