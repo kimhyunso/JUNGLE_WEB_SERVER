@@ -16,7 +16,7 @@ int main(int arg, char* args[]) {
     port = args[2];
     // connect
     clientfd = Open_clientfd(host, port);
-    Rio_readinitb(&rio, clientfd);  // 식별자 fd를 주소 
+    Rio_readinitb(&rio, clientfd);  // 식별자 fd를 주소 rp에 위치한 rio_t 타입의 읽기 버퍼와 연결
 
     // write
     // read

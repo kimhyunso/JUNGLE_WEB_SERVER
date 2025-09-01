@@ -38,9 +38,7 @@
 
 //   exit(0);
 // }
-// /* $end adder */
-
-
+/* $end adder */
 
 int main(void) {
 	char* buf, *p;
@@ -58,10 +56,7 @@ int main(void) {
 
 	// make response body
 	sprintf(content, "QUERY_STRING=%s", buf);
-	sprintf(content, "Welcome to add.com: ");
-	sprintf(content, "%sTHE Internet addition portal.\r\n<p>", content);
-	sprintf(content, "%sTHE answer is: %d + %d = %d\r\n<p>", content, n1, n2, n1 + n2);
-	sprintf(content, "%sThanks for visiting!\r\n", content);
+	sprintf(content, "Welcome to add.com: THE Internet addition portal.\r\n<p>The answer is: %d + %d = %d\r\n<p>Thanks for visiting!\r\n", n1, n2, n1 + n2);
 
 	// generate HTTP response
 	printf("Connection: close\r\n");
@@ -72,7 +67,3 @@ int main(void) {
 
 	exit(0);
 }
-
-
-
-

@@ -17,6 +17,36 @@
             "miDebuggerPath": "/usr/bin/gdb",
             "preLaunchTask": "Tiny server clean-and-build",
             "setupCommands": [
+                // {
+                //     "description": "Enable pretty-printing for gdb",
+                //     "text": "-enable-pretty-printing",
+                //     "ignoreFailures": true
+                // },
+                // {
+                //     "description": "Set Disassembly Flavor to Intel",
+                //     "text": "-gdb-set disassembly-flavor intel",
+                //     "ignoreFailures": true
+                // },
+                // {
+                //     "description": "Set follow-fork-mode to parent",
+                //     "text": "-gdb-set follow-fork-mode parent",
+                //     "ignoreFailures": false
+                // },
+                // // {
+                // //     "description": "Set follow-fork-mode to child",
+                // //     "text": "-gdb-set follow-fork-mode child",
+                // //     "ignoreFailures": false
+                // // },
+                // {
+                //     "description": "Set detach-on-fork to on",
+                //     "text": "-gdb-set detach-on-fork on",
+                //     "ignoreFailures": false
+                // },
+                // {
+                //     "description": "Set detach-on-fork to off",
+                //     "text": "-gdb-set detach-on-fork off",
+                //     "ignoreFailures": false
+                // }
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
@@ -27,29 +57,21 @@
                     "text": "-gdb-set disassembly-flavor intel",
                     "ignoreFailures": true
                 },
+                // 자식 프로세스를 추적하도록 변경
                 {
-                    "description": "Set follow-fork-mode to parent",
-                    "text": "-gdb-set follow-fork-mode parent",
+                    "description": "Set follow-fork-mode to child",
+                    "text": "-gdb-set follow-fork-mode child",
                     "ignoreFailures": false
                 },
-                // {
-                //     "description": "Set follow-fork-mode to child",
-                //     "text": "-gdb-set follow-fork-mode child",
-                //     "ignoreFailures": false
-                // },
+                // 포크 시 분리하지 않도록 변경 (자식과 부모 모두 추적)
                 {
-                    "description": "Set detach-on-fork to on",
-                    "text": "-gdb-set detach-on-fork on",
+                    "description": "Set detach-on-fork to off",
+                    "text": "-gdb-set detach-on-fork off",
                     "ignoreFailures": false
                 }
-                // {
-                //     "description": "Set detach-on-fork to off",
-                //     "text": "-gdb-set detach-on-fork off",
-                //     "ignoreFailures": false
-                // }
             ],
             "sourceFileMap": {
-                "/workspaces/webproxy_lab_docker": "${workspaceFolder}"
+                "/workspaces/webproxy_lab_docke": "${workspaceFolder}"
             }
         },
         {

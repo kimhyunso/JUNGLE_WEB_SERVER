@@ -35,4 +35,3 @@ Files:
   README		This file	
   cgi-bin/adder.c	CGI program that adds two numbers
   cgi-bin/Makefile	Makefile for adder.c
-
