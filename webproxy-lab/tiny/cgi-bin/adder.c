@@ -50,13 +50,22 @@ int main(void) {
 		*p = '\0';
 		strcpy(arg1, buf);
 		strcpy(arg2, p+1);
-		n1 = atoi(arg1); // 문자열 to INT
-		n2 = atoi(arg2);
+		// n1 = atoi(arg1); // 문자열 to INT
+		// n2 = atoi(arg2);
+		n1 = atoi(strchr(arg1, '=') + 1);
+    	n2 = atoi(strchr(arg2, '=') + 1);
 	}
 
 	// make response body
-	sprintf(content, "QUERY_STRING=%s", buf);
-	sprintf(content, "Welcome to add.com: THE Internet addition portal.\r\n<p>The answer is: %d + %d = %d\r\n<p>Thanks for visiting!\r\n", n1, n2, n1 + n2);
+	// sprintf(content, "QUERY_STRING=%s", buf);
+	// sprintf(content, "<p>QUERY_STRING=%s</p> <p>Welcome to add.com: THE Internet addition portal.\r\n</p><p>The answer is: %d + %d = %d\r\n</p><p>Thanks for visiting!\r\n</p>", buf, n1, n2, n1 + n2);
+	// sprintf(content, "QUERY_STRING=%s<p>Welcome to add.com: THE Internet addition portal.\r\n<p>The answer is: %d + %d = %d\r\n<p>Thanks for visiting!\r\n", buf, n1, n2, n1 + n2);
+	sprintf(content, "QUERY_STRING=%s\r\n<p>", buf);
+  	sprintf(content + strlen(content), "Welcome to add.com: ");
+  	sprintf(content + strlen(content), "THE Internet addition portal.\r\n<p>");
+  	sprintf(content + strlen(content), "The answer is: %d + %d = %d\r\n<p>",
+          n1, n2, n1 + n2);
+  	sprintf(content + strlen(content), "Thanks for visiting!\r\n");
 
 	// generate HTTP response
 	printf("Connection: close\r\n");

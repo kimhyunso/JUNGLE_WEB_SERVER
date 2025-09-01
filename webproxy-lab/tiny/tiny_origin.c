@@ -17,6 +17,7 @@ void serve_dynamic(int fd, char *filename, char *cgiargs);
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg,
                  char *longmsg);
 
+
 /*
  * # tiny는 반복실행 서버, 명령줄에서 넘겨받은 포트로의 연결 요청을 듣는다.
  * 1. open_listenfd 함수를 호출해서 듣기 소켓을 오픈한 후
@@ -102,7 +103,7 @@ void clienterror(int fd, char* cause, char* errnum, char* shortmsg, char* longms
     sprintf(body, "%s<hr><em>The Tiny Web server</em>\r\n", body);
 
     // printf the response
-    sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg); 
+    sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg); // 왜 근데 1.0인거임?
     Rio_writen(fd, buf, strlen(buf));
     sprintf(buf, "Content-type: text/html\r\n");
     Rio_writen(fd, buf, strlen(buf));
@@ -127,7 +128,10 @@ void read_requesthdrs(rio_t* rp) {
  * 정적 컨텐츠: 자신의 현재 디렉토리(.) ex) workingDirectory/webproxy-lab/tiny
  * 정적 컨텐츠의 기본파일명: home.html
  * 실행파일의 홈 디렉토리: /cgi-bin
+ * 
+ * 
  */
+
 int parse_uri(char* uri, char* filename, char* cgiargs) {
     char* ptr;
 
@@ -138,19 +142,6 @@ int parse_uri(char* uri, char* filename, char* cgiargs) {
         if (uri[strlen(uri) - 1] == '/') {
             strcat(filename, "home.html");
         }
-
-        struct stat sbuf;
-        if (stat(filename, &sbuf) < 0) {
-            // 3. 파일이 없으면 .html 확장자를 붙여서 다시 확인
-            char html_filename[MAXLINE];
-            strcpy(html_filename, filename);
-            strcat(html_filename, ".html");
-            if (stat(html_filename, &sbuf) == 0) {
-                // .html 파일이 존재하면 그 파일로 경로를 업데이트
-                strcpy(filename, html_filename);
-            }
-        }
-
         return 1;
     } else { // 동적 컨텐츠
         ptr = index(uri, '?');
@@ -195,23 +186,10 @@ void serve_static(int fd, char* filename, int filesize) { // 정적 컨텐츠 �
 
     // response body 클라이언트에게 보내기
     srcfd = Open(filename, O_RDONLY, 0);
-
-    char* file_buf = (char*)malloc(filesize);
-    if (file_buf == NULL) {
-        // 메모리 할당 실패 처리
-        clienterror(fd, "malloc", "500", "Internal Server Error", "Failed to allocate memory for file content");
-        Close(srcfd);
-        return;
-    }
-    
-    // 파일에서 클라이언트 소켓이 아닌, 새로 오픈한 파일 디스크립터에서 읽기
-    Rio_readn(srcfd, file_buf, filesize);
-    
-    // 읽어온 내용을 소켓에 쓰기
-    Rio_writen(fd, file_buf, filesize);
-
+    srcp = Mmap(0, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0);
     Close(srcfd);
-    free(file_buf);
+    Rio_writen(fd, srcp, filesize);
+    Munmap(srcp, filesize);
 }
 
 void get_filetype(char* filename, char* filetype) {

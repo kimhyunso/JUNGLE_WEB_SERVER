@@ -17,6 +17,8 @@ proxy
 *.ko
 *.obj
 *.elf
+*.mpg
+*.mp4
 
 # Linker output
 *.ilk
