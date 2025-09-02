@@ -41,7 +41,8 @@
 /* $end adder */
 
 int main(void) {
-	char* buf, *p;
+
+	char* buf, *p, *method;
 	char arg1[MAXLINE], arg2[MAXLINE], content[MAXLINE];
 	int n1=0, n2=0;
 
@@ -66,12 +67,15 @@ int main(void) {
   	sprintf(content + strlen(content), "The answer is: %d + %d = %d\r\n<p>",
           n1, n2, n1 + n2);
   	sprintf(content + strlen(content), "Thanks for visiting!\r\n");
+	method = getenv("REQUEST_METHOD");
 
-	// generate HTTP response
-	printf("Connection: close\r\n");
-	printf("Content-length: %d\r\n", (int)strlen(content));
-	printf("Content-type: text/html\r\n\r\n");
-	printf("%s", content);
+	if (strcasecmp(method, "GET") == 0) {
+		// generate HTTP response
+		printf("Connection: close\r\n");
+		printf("Content-length: %d\r\n", (int)strlen(content));
+		printf("Content-type: text/html\r\n\r\n");
+		printf("%s", content);	
+	}
 	fflush(stdout);
 
 	exit(0);

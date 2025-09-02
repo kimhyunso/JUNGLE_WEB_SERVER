@@ -11,9 +11,9 @@
 void doit(int fd);
 void read_requesthdrs(rio_t *rp);
 int parse_uri(char *uri, char *filename, char *cgiargs);
-void serve_static(int fd, char *filename, int filesize);
+void serve_static(int fd, char *filename, int filesize, char* method);
 void get_filetype(char *filename, char *filetype);
-void serve_dynamic(int fd, char *filename, char *cgiargs);
+void serve_dynamic(int fd, char *filename, char *cgiargs, char* method);
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg,
                  char *longmsg);
 
@@ -62,10 +62,11 @@ void doit(int fd) {
     printf("%s", buf);
     sscanf(buf, "%s %s %s", method, uri, version);
     // GET 메소드만 지원함, POST같은 요청을 하면 에러 메시지를 보낸 후 main루틴으로 돌아옴
-    if (strcasecmp(method, "GET")) { 
+    if (strcasecmp(method, "GET") && strcasecmp(method, "HEAD")) { 
         clienterror(fd, method, "501", "Not implemented", "Tiny does not implement this method");
         return;
     }
+
     // request header들을 읽기
     read_requesthdrs(&rio);
 
@@ -81,13 +82,13 @@ void doit(int fd) {
             clienterror(fd, filename, "403", "Forbidden", "Tiny couldn't read the file");
             return;
         }
-        serve_static(fd, filename, sbuf.st_size); // 정적 컨텐츠 제공
+        serve_static(fd, filename, sbuf.st_size, method); // 정적 컨텐츠 제공
     } else { // 동적컨텐츠일때
         if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode)) { // 쓰기 권한 및 보통파일인지 검증
             clienterror(fd, filename, "403", "Forbidden", "Tiny couldn't run the CGI program");
             return;
         }
-        serve_dynamic(fd, filename, cgiargs); // 동적 컨텐츠 제공
+        serve_dynamic(fd, filename, cgiargs, method); // 동적 컨텐츠 제공
     }
 }
 
@@ -166,23 +167,12 @@ int parse_uri(char* uri, char* filename, char* cgiargs) {
     }
 }
 
-void serve_static(int fd, char* filename, int filesize) { // 정적 컨텐츠 제공 함수
+void serve_static(int fd, char* filename, int filesize, char* method) { // 정적 컨텐츠 제공 함수
     int srcfd;
     char* srcp, filetype[MAXLINE], buf[MAXLINE];
 
     // 클라이언트에게 response header 보내기
     get_filetype(filename, filetype);
-
-    // sprintf(buf, "HTTP/1.0 200 OK\r\n");
-    // Rio_writen(fd, buf, strlen(buf));
-    // sprintf(buf, "Server: Tiny Web Server\r\n");
-    // Rio_writen(fd, buf, strlen(buf));
-    // sprintf(buf, "Connection: close\r\n");
-    // Rio_writen(fd, buf, strlen(buf));
-    // sprintf(buf, "Content-length: %d\r\n", filesize);
-    // Rio_writen(fd, buf, strlen(buf));
-    // sprintf(buf, "Content-type: %s\r\n\r\n", filetype);
-    // Rio_writen(fd, buf, strlen(buf));
 
     sprintf(buf, "HTTP/1.0 200 OK\r\n");
     sprintf(buf, "%sServer: Tiny Web Server\r\n", buf);
@@ -193,25 +183,27 @@ void serve_static(int fd, char* filename, int filesize) { // 정적 컨텐츠 �
     printf("Reponse headers:\n");
     printf("%s", buf);
 
-    // response body 클라이언트에게 보내기
-    srcfd = Open(filename, O_RDONLY, 0);
+    if (strcasecmp(method, "GET") == 0) {
+        // response body 클라이언트에게 보내기
+        srcfd = Open(filename, O_RDONLY, 0);
 
-    char* file_buf = (char*)malloc(filesize);
-    if (file_buf == NULL) {
-        // 메모리 할당 실패 처리
-        clienterror(fd, "malloc", "500", "Internal Server Error", "Failed to allocate memory for file content");
+        srcp = (char*)malloc(filesize);
+        if (srcp == NULL) {
+            // 메모리 할당 실패 처리
+            clienterror(fd, "malloc", "500", "Internal Server Error", "Failed to allocate memory for file content");
+            Close(srcfd);
+            return;
+        }
+        
+        // 파일에서 클라이언트 소켓이 아닌, 새로 오픈한 파일 디스크립터에서 읽기
+        Rio_readn(srcfd, srcp, filesize);
+        
+        // 읽어온 내용을 소켓에 쓰기
+        Rio_writen(fd, srcp, filesize);
+
         Close(srcfd);
-        return;
+        free(srcp);
     }
-    
-    // 파일에서 클라이언트 소켓이 아닌, 새로 오픈한 파일 디스크립터에서 읽기
-    Rio_readn(srcfd, file_buf, filesize);
-    
-    // 읽어온 내용을 소켓에 쓰기
-    Rio_writen(fd, file_buf, filesize);
-
-    Close(srcfd);
-    free(file_buf);
 }
 
 void get_filetype(char* filename, char* filetype) {
@@ -228,7 +220,7 @@ void get_filetype(char* filename, char* filetype) {
     }
 }
 
-void serve_dynamic(int fd, char* filename, char* cgiargs) {
+void serve_dynamic(int fd, char* filename, char* cgiargs, char* method) {
     char buf[MAXLINE], *emptylist[] = { NULL };
 
     sprintf(buf, "HTTP/1.0 200 OK\r\n");
@@ -237,7 +229,10 @@ void serve_dynamic(int fd, char* filename, char* cgiargs) {
     Rio_writen(fd, buf, strlen(buf));
 
     if (Fork() == 0) { // 자식 프로세스 생성
-        setenv("QUERY_STRING", cgiargs, 1); //환경변수 설정 
+        // cgi-bin/adder로 넘겨주기 위한 환경변수 설정
+        setenv("QUERY_STRING", cgiargs, 1);
+        setenv("REQUEST_METHOD", method, 1);
+        
         Dup2(fd, STDOUT_FILENO); // redirect 
         Execve(filename, emptylist, environ);
     }
