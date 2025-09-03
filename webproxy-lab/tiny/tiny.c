@@ -46,6 +46,7 @@ int main(int argc, char* argv[]) {
         Close(connfd);
     }
 }
+
 // 한 개의 HTTP 트랜잭션을 처리한다.
 void doit(int fd) {
     int is_static;
