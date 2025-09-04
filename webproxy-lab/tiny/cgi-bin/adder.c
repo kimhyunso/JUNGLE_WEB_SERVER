@@ -41,7 +41,6 @@
 /* $end adder */
 
 int main(void) {
-
 	char* buf, *p, *method;
 	char arg1[MAXLINE], arg2[MAXLINE], content[MAXLINE];
 	int n1=0, n2=0;
@@ -50,7 +49,8 @@ int main(void) {
 		p = strchr(buf, '&'); // buf 안에서 '&' 문자 찾음
 		*p = '\0';
 		strcpy(arg1, buf);
-		strcpy(arg2, p+1);
+		strcat(arg2, buf);
+		// strcpy(arg2, buf);
 		// n1 = atoi(arg1); // 문자열 to INT
 		// n2 = atoi(arg2);
 		n1 = atoi(strchr(arg1, '=') + 1);
@@ -65,17 +65,17 @@ int main(void) {
   	sprintf(content + strlen(content), "Welcome to add.com: ");
   	sprintf(content + strlen(content), "THE Internet addition portal.\r\n<p>");
   	sprintf(content + strlen(content), "The answer is: %d + %d = %d\r\n<p>",
-          n1, n2, n1 + n2);
+    n1, n2, n1 + n2);
   	sprintf(content + strlen(content), "Thanks for visiting!\r\n");
 	method = getenv("REQUEST_METHOD");
 
-	if (strcasecmp(method, "GET") == 0) {
-		// generate HTTP response
-		printf("Connection: close\r\n");
-		printf("Content-length: %d\r\n", (int)strlen(content));
-		printf("Content-type: text/html\r\n\r\n");
-		printf("%s", content);	
-	}
+	// if (strcasecmp(method, "GET") == 0) {
+	// generate HTTP response
+	printf("Connection: close\r\n");
+	printf("Content-length: %d\r\n", (int)strlen(content));
+	printf("Content-type: text/html\r\n\r\n");
+	printf("%s", content);	
+	//	}
 	fflush(stdout);
 
 	exit(0);
